@@ -36,3 +36,9 @@ export const sendMessage = (messageData) => {
     socket.emit('sendMessage', messageData);
   }
 };
+
+export const markAsRead = (conversationId, userId) => {
+  if (socket) {
+    socket.emit('markAsRead', { conversationId, userId });
+  }
+};

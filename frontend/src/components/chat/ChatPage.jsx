@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Grid } from '@mui/material';
+import { Box } from '@mui/material';
 import ConversationList from './ConversationList';
 import ChatBox from './ChatBox';
 import { useSelector } from 'react-redux';
+import apiClient from '../../services/api/axiosConfig';
+import { initiateSocketConnection, disconnectSocket } from '../../services/socketService';
 
 const ChatPage = () => {
   const { user } = useSelector((state) => state.auth);
@@ -16,12 +18,21 @@ const ChatPage = () => {
     lastMessage: 'Hello! How can we help you today?'
   };
 
-  // Here you can add logic to determine the initial conversation to load (if any)
   useEffect(() => {
-    // For customers, automatically set the default support conversation
-    if (user?.role !== 'admin') {
-      setSelectedConversation(defaultConversation);
-    }
+    if (!user?.id) return;
+    initiateSocketConnection(user.id);
+    const setup = async () => {
+      if (user?.role !== 'admin') {
+        try {
+          const { data } = await apiClient.get('/chat/default-admin');
+          setSelectedConversation({ otherUserId: data._id, name: data.name });
+        } catch (e) {
+          console.error('Failed to get default admin', e);
+        }
+      }
+    };
+    setup();
+    return () => disconnectSocket();
   }, [user]);
 
   const handleSelectConversation = (conversation) => {
@@ -33,46 +44,30 @@ const ChatPage = () => {
       sx={{
         display: 'flex',
         width: '100%',
-        height: 'calc(100vh - 120px)', // Reduced height from 64px to 120px for more compact view
-        bgcolor: '#1E1E1E', // Dark background to match the rest of the page
+        height: 'calc(100vh - 120px)', 
+        bgcolor: '#1E1E1E', 
       }}
     >
       <Box
         sx={{
-          width: '280px', // Slightly reduced width from 300px
+          width: '280px', 
           borderRight: '1px solid #333',
           overflowY: 'auto',
         }}
       >
-        {/* Conversation list (if relevant for this user) */}
         {user?.role === 'admin' ? (
           <ConversationList onSelectConversation={handleSelectConversation} />
         ) : (
           <Box sx={{ p: 2, textAlign: 'center', color: 'grey' }}>
-            {/* For customers, show the default support conversation */}
-            <Box 
-              sx={{ 
-                p: 2, 
-                bgcolor: '#2A2A2A', 
-                borderRadius: 1, 
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#3A3A3A' }
-              }}
-              onClick={() => handleSelectConversation(defaultConversation)}
-            >
-              <Box sx={{ fontWeight: 'bold', color: 'primary.main', mb: 1 }}>
-                {defaultConversation.name}
-              </Box>
-              <Box sx={{ fontSize: '0.9rem', color: 'text.secondary' }}>
-                {defaultConversation.lastMessage}
-              </Box>
+            <Box sx={{ p: 2, bgcolor: '#2A2A2A', borderRadius: 1 }}>
+              Chat with support
             </Box>
           </Box>
         )}
       </Box>
       <Box
         sx={{
-          flexGrow: 1, // ChatBox will take up all remaining space
+          flexGrow: 1, 
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
