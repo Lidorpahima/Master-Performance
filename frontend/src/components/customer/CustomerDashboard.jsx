@@ -29,12 +29,31 @@ import {
   FormControlLabel,
   Switch
 } from '@mui/material';
-import axios from 'axios';
+import api from '../../services/api';
 import { motion } from 'framer-motion';
-import { Person, Speed, Settings, CloudUpload, DirectionsCar, Add } from '@mui/icons-material';
+import ChatPage from '../chat/ChatPage';
+import { Person, Speed, Settings, CloudUpload, DirectionsCar, Add, Chat } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import API_BASE_URL from '../../services/api/config';
 
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`dashboard-tabpanel-${index}`}
+      aria-labelledby={`dashboard-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 const CustomerDashboard = () => {
   const [tabValue, setTabValue] = useState(0);
   const [vehicles, setVehicles] = useState([]);
@@ -92,7 +111,7 @@ const CustomerDashboard = () => {
         setLoading(true);
         
         // Fetch vehicles
-        const vehiclesResponse = await axios.get(`${API_BASE_URL}/vehicles/user-vehicles`, {
+        const vehiclesResponse = await api.get(`${API_BASE_URL}/vehicles/user-vehicles`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
@@ -118,7 +137,7 @@ const CustomerDashboard = () => {
         setVehicles(vehiclesResponse.data);
         
         // Fetch tuning projects
-        const projectsResponse = await axios.get(`${API_BASE_URL}/tuning/user-projects`, {
+        const projectsResponse = await api.get(`${API_BASE_URL}/tuning/user-projects`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
@@ -151,7 +170,7 @@ const CustomerDashboard = () => {
 
   const handleProfileUpdate = async () => {
     try {
-      await axios.put(`${API_BASE_URL}/users/profile`, profile, {
+      await api.put(`${API_BASE_URL}/users/profile`, profile, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -285,6 +304,7 @@ const CustomerDashboard = () => {
             <Tab icon={<Speed />} label="Performance Hub" />
             <Tab icon={<Person />} label="Profile" />
             <Tab icon={<Settings />} label="Settings" />
+            <Tab icon={<Chat />} label="Chat" /> 
           </Tabs>
         </Box>
 
@@ -676,6 +696,13 @@ const CustomerDashboard = () => {
                 </Button>
               </Grid>
             </Grid>
+          </Box>
+        )}
+
+        {/* Chat Tab Content */}
+        {tabValue === 3 && (
+          <Box sx={{ bgcolor: '#1A1A1A', p: 3, borderRadius: 1 }}>
+            <ChatPage />
           </Box>
         )}
       </motion.div>

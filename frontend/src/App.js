@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import theme from './theme';
+import { initiateSocketConnection, disconnectSocket } from './services/socketService';
 
 // Components
 import Navbar from './components/layout/Navbar';
@@ -57,7 +58,18 @@ function App() {
         }
       }
     }, [dispatch]);
-
+    useEffect(() => {
+      if (isAuthenticated && user) {
+        initiateSocketConnection(user.id);
+      }
+  
+      return () => {
+        disconnectSocket();
+      };
+    }, [isAuthenticated, user]);
+  
+  
+  
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
