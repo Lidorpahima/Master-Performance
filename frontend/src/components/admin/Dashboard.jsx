@@ -5,8 +5,7 @@ import ProjectsList from './ProjectsList';
 import StatsOverview from './StatsOverview';
 import UserManagement from './UserManagement';
 import ProjectManagement from './ProjectManagement';
-import axios from 'axios';
-import API_BASE_URL from '../../services/api/config';
+import api from '../../services/api'; 
 
 const AnimatedPaper = animated(Paper);
 
@@ -30,33 +29,17 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
+        setError(null); 
         
-        // In a real app, you would fetch this data from your API
-        // For now, we'll use mock data
-        setTimeout(() => {
-          setStats({
-            totalUsers: 12,
-            totalProjects: 24,
-            activeProjects: 8,
-            completedProjects: 16
-          });
-          setLoading(false);
-        }, 1000);
         
-        // Uncomment this when your API is ready
-        /*
-        const response = await axios.get(`${API_BASE_URL}/admin/dashboard-stats`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        const response = await api.get('/admin/dashboard-stats'); 
         setStats(response.data);
-        setLoading(false);
-        */
+        
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data');
-        setLoading(false);
+        setError('Failed to load dashboard data. Please try again later.');
+      } finally {
+        setLoading(false); 
       }
     };
 

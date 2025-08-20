@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import theme from './theme';
 
 // Components
@@ -18,11 +18,14 @@ import Login from './components/auth/Login';
 import CustomerDashboard from './components/customer/CustomerDashboard';
 import AdminDashboard from './components/admin/Dashboard';
 import ChatSupport from './components/chat/ChatSupport';
+import { jwtDecode } from 'jwt-decode'; 
+import { setUser } from './redux/authSlice'; 
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRole }) => {
-  const { user, isAuthenticated } = useSelector(state => state.auth);
-  
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
@@ -35,8 +38,26 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 };
 
 function App() {
-  const { user, isAuthenticated } = useSelector(state => state.auth);
+    const { user, isAuthenticated } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
   
+    useEffect(() => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const decodedUser = jwtDecode(token);
+          if (decodedUser.exp * 1000 > Date.now()) {
+            dispatch(setUser({ id: decodedUser.userId, role: decodedUser.role }));
+          } else {
+            localStorage.removeItem('token');
+          }
+        } catch (error) {
+          console.error("Failed to decode token:", error);
+          localStorage.removeItem('token');
+        }
+      }
+    }, [dispatch]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
