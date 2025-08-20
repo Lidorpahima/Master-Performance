@@ -9,6 +9,10 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
 import vehicleRoutes from './routes/vehicle.routes.js';
 import tuningRoutes from './routes/tuning.routes.js';
+import chatRoutes from './routes/chat.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+import Conversation from './models/Conversation.js';
+import Message from './models/Message.js';
 
 // Load environment variables
 dotenv.config();
@@ -44,6 +48,8 @@ const connectDatabase = async () => {
 app.use('/api/auth', authRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/tuning', tuningRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -79,17 +85,62 @@ io.on('connection', (socket) => {
   socket.on('sendMessage', async (data) => {
     try {
       console.log('📨 Message received:', data);
-      
-      const { recipientId, ...messageData } = data;
-      
-      // Emit message to recipient
-      io.to(recipientId).emit('newMessage', messageData);
-      
-      // Emit message back to sender for confirmation
-      io.to(messageData.sender).emit('newMessage', messageData);
+      const { senderId, recipientId, text, fileUrl } = data;
+
+      // Find or create conversation
+      let conversation = await Conversation.findOne({
+        participants: { $all: [senderId, recipientId] },
+      });
+      if (!conversation) {
+        conversation = await Conversation.create({
+          participants: [senderId, recipientId],
+        });
+      }
+
+      // Persist message
+      const newMessage = await Message.create({
+        conversationId: conversation._id,
+        sender: senderId,
+        text: text || undefined,
+        fileUrl: fileUrl || undefined,
+      });
+
+      // Update conversation lastMessage
+      conversation.lastMessage = {
+        text: text || (fileUrl ? 'Attachment' : ''),
+        sender: senderId,
+        createdAt: new Date(),
+      };
+      await conversation.save();
+
+      const messagePayload = {
+        _id: newMessage._id,
+        conversationId: conversation._id,
+        sender: senderId,
+        text: newMessage.text,
+        fileUrl: newMessage.fileUrl,
+        isRead: false,
+        timestamp: newMessage.createdAt,
+      };
+
+      // Emit message to recipient and sender
+      io.to(recipientId).emit('newMessage', messagePayload);
+      io.to(senderId).emit('newMessage', messagePayload);
     } catch (error) {
       console.error('❌ Error handling message:', error);
       socket.emit('error', { message: 'Failed to send message' });
+    }
+  });
+
+  // Mark messages as read for a conversation
+  socket.on('markAsRead', async ({ conversationId, userId }) => {
+    try {
+      await Message.updateMany(
+        { conversationId, sender: { $ne: userId }, isRead: false },
+        { $set: { isRead: true } }
+      );
+    } catch (error) {
+      console.error('❌ Error marking messages as read:', error);
     }
   });
 
