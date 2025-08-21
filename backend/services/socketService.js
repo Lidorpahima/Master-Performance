@@ -15,7 +15,7 @@ export const initiateSocketConnection = (userId) => {
     console.log('Connected to socket server!');
   });
 };
-
+export const getSocket = () => socket;
 export const disconnectSocket = () => {
   if (socket) {
     socket.disconnect();
