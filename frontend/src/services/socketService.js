@@ -30,6 +30,7 @@ export const subscribeToMessages = (callback) => {
   });
 };
 
+export const getSocket = () => socket;
 
 export const sendMessage = (messageData) => {
   if (socket) {

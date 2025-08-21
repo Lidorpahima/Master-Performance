@@ -24,12 +24,14 @@ import {
   CircularProgress,
   Alert
 } from '@mui/material';
-import { Edit, Delete, Add } from '@mui/icons-material';
+import { Edit, Delete, Add, Chat } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../../services/api/config';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -56,7 +58,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/users/admin/all`, {
+      const response = await axios.get(`${API_BASE_URL}/admin/users`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -140,7 +142,7 @@ const UserManagement = () => {
       if (editUser) {
         // Update existing user
         const response = await axios.put(
-          `${API_BASE_URL}/users/${editUser._id}`, 
+          `${API_BASE_URL}/admin/users/${editUser._id}`, 
           newUser,
           {
             headers: {
@@ -160,7 +162,7 @@ const UserManagement = () => {
       } else {
         // Add new user
         const response = await axios.post(
-          `${API_BASE_URL}/users/admin/create`, 
+          `${API_BASE_URL}/admin/users`, 
           newUser,
           {
             headers: {
@@ -197,7 +199,7 @@ const UserManagement = () => {
     if (!userToDelete) return;
     
     try {
-      await axios.delete(`${API_BASE_URL}/users/${userToDelete._id}`, {
+      await axios.delete(`${API_BASE_URL}/admin/users/${userToDelete._id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -256,7 +258,7 @@ const UserManagement = () => {
                   <TableCell>
                     <Chip 
                       label={user.role}
-                      color={user.role === 'admin' ? 'primary' : 'default'}
+                      color={user.role == 'admin' ? 'primary' : 'default'}
                       size="small"
                     />
                   </TableCell>
@@ -273,6 +275,9 @@ const UserManagement = () => {
                     </IconButton>
                     <IconButton size="small" onClick={() => handleDeleteConfirm(user)}>
                       <Delete sx={{ color: 'white' }} />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => navigate(`/admin/chat?userId=${user._id}&name=${encodeURIComponent(user.firstName||'')}%20${encodeURIComponent(user.lastName||'')}`)}>
+                      <Chat sx={{ color: 'white' }} />
                     </IconButton>
                   </TableCell>
                 </TableRow>

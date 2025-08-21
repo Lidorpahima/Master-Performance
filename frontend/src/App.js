@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
+import { CssBaseline, Toolbar } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import theme from './theme';
 import { initiateSocketConnection, disconnectSocket } from './services/socketService';
@@ -18,6 +18,7 @@ import Payment from './pages/Payment';
 import Login from './components/auth/Login';
 import CustomerDashboard from './components/customer/CustomerDashboard';
 import AdminDashboard from './components/admin/Dashboard';
+import ChatPage from './components/chat/ChatPage';
 import ChatSupport from './components/chat/ChatSupport';
 import { jwtDecode } from 'jwt-decode'; 
 import { setUser } from './redux/authSlice'; 
@@ -75,6 +76,7 @@ function App() {
       <CssBaseline />
       <Router>
         <Navbar />
+        <Toolbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />
@@ -87,13 +89,18 @@ function App() {
           {/* Protected routes */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
-              {user?.role === 'admin' ? <AdminDashboard /> : <CustomerDashboard />}
+              {user?.role == 'admin' ? <AdminDashboard /> : <CustomerDashboard />}
             </ProtectedRoute>
           } />
           
           <Route path="/admin/*" element={
             <ProtectedRoute requiredRole="admin">
               <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/chat" element={
+            <ProtectedRoute requiredRole="admin">
+              <ChatPage />
             </ProtectedRoute>
           } />
         </Routes>

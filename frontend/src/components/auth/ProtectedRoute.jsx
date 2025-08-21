@@ -30,5 +30,5 @@ export const AdminRoute = ({ redirectPath = '/dashboard' }) => {
     );
   }
   
-  return isAuthenticated && user?.role === 'admin' ? <Outlet /> : <Navigate to={redirectPath} replace />;
+  return isAuthenticated && user?.role == 'admin' ? <Outlet /> : <Navigate to={redirectPath} replace />;
 };

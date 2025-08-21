@@ -5,9 +5,11 @@ import ChatBox from './ChatBox';
 import { useSelector } from 'react-redux';
 import apiClient from '../../services/api/axiosConfig';
 import { initiateSocketConnection, disconnectSocket } from '../../services/socketService';
+import { useSearchParams } from 'react-router-dom';
 
 const ChatPage = () => {
   const { user } = useSelector((state) => state.auth);
+  const [searchParams] = useSearchParams();
   const [selectedConversation, setSelectedConversation] = useState(null);
 
   // Default conversation for demonstration
@@ -19,8 +21,9 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    if (!user?.id) return;
-    initiateSocketConnection(user.id);
+    const currentUserId = user?.id || user?._id || user?.userId;
+    if (!currentUserId) return;
+    initiateSocketConnection(currentUserId);
     const setup = async () => {
       if (user?.role !== 'admin') {
         try {
@@ -29,13 +32,24 @@ const ChatPage = () => {
         } catch (e) {
           console.error('Failed to get default admin', e);
         }
+      } else {
+        // If admin and URL contains ?userId=..., preselect that conversation
+        const preselectUserId = searchParams.get('userId');
+        const preselectName = searchParams.get('name');
+        if (preselectUserId) {
+          setSelectedConversation({ otherUserId: preselectUserId, name: preselectName || 'User' });
+        }
       }
     };
     setup();
     return () => disconnectSocket();
-  }, [user]);
+  }, [user, searchParams]);
 
   const handleSelectConversation = (conversation) => {
+    // Ensure conversation has the conversationId for proper message marking
+    if (conversation.id && conversation.id !== conversation.otherUserId) {
+      conversation.conversationId = conversation.id;
+    }
     setSelectedConversation(conversation);
   };
 

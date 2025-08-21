@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Paper, Typography, Box, CircularProgress, Alert } from '@mui/material';
-import { useSpring, animated } from '@react-spring/web';
+import { Grid, Paper, Typography, Box, CircularProgress, Alert, Button } from '@mui/material';
+import { Chat } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import ProjectsList from './ProjectsList';
 import StatsOverview from './StatsOverview';
 import UserManagement from './UserManagement';
 import ProjectManagement from './ProjectManagement';
 import api from '../../services/api'; 
 
-const AnimatedPaper = animated(Paper);
-
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({
@@ -17,12 +17,6 @@ const Dashboard = () => {
     totalProjects: 0,
     activeProjects: 0,
     completedProjects: 0
-  });
-
-  const fadeIn = useSpring({
-    from: { opacity: 0 },
-    to: { opacity: 1 },
-    config: { duration: 500 }
   });
 
   useEffect(() => {
@@ -64,29 +58,39 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Typography variant="h4" color="primary" gutterBottom>
-        Admin Dashboard
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" color="primary">
+          Admin Dashboard
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<Chat />}
+          onClick={() => navigate('/admin/chat')}
+        >
+          Chat
+        </Button>
+      </Box>
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
-          <AnimatedPaper style={fadeIn} elevation={3} sx={{ p: 2, bgcolor: '#1A1A1A' }}>
+          <Paper elevation={3} sx={{ p: 2, bgcolor: '#1A1A1A' }}>
             <StatsOverview stats={stats} />
-          </AnimatedPaper>
+          </Paper>
         </Grid>
         <Grid item xs={12} md={8}>
-          <AnimatedPaper style={fadeIn} elevation={3} sx={{ p: 2, bgcolor: '#1A1A1A' }}>
+          <Paper elevation={3} sx={{ p: 2, bgcolor: '#1A1A1A' }}>
             <ProjectsList />
-          </AnimatedPaper>
+          </Paper>
         </Grid>
         <Grid item xs={12}>
-          <AnimatedPaper style={fadeIn} elevation={3} sx={{ p: 2, bgcolor: '#1A1A1A' }}>
+          <Paper elevation={3} sx={{ p: 2, bgcolor: '#1A1A1A' }}>
             <ProjectManagement />
-          </AnimatedPaper>
+          </Paper>
         </Grid>
         <Grid item xs={12}>
-          <AnimatedPaper style={fadeIn} elevation={3} sx={{ p: 2, bgcolor: '#1A1A1A' }}>
+          <Paper elevation={3} sx={{ p: 2, bgcolor: '#1A1A1A' }}>
             <UserManagement />
-          </AnimatedPaper>
+          </Paper>
         </Grid>
       </Grid>
     </Box>
