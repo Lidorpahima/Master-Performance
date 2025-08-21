@@ -98,28 +98,28 @@ npm run build
 ### Architecture
 ```mermaid
 flowchart LR
-  subgraph Client[Frontend - React]
-    UI[UI (MUI, React, Redux)]
-    SockClient[Socket.IO Client]
-    Axios[Axios]
+  subgraph Client["Frontend"]
+    UI["UI: React + Redux + MUI"]
+    SockClient["Socket.IO Client"]
+    Axios["Axios"]
   end
 
-  subgraph Server[Backend - Express]
-    API[REST API]
-    SockServer[Socket.IO Server]
-    Upload[Cloudinary Upload Service]
-    Auth[JWT Auth]
+  subgraph Server["Backend (Express)"]
+    API["REST API"]
+    SockServer["Socket.IO Server"]
+    Upload["Cloudinary Upload Service"]
+    Auth["JWT Auth"]
   end
 
-  DB[(MongoDB)]
-  Cloudinary[(Cloudinary Storage)]
+  DB[("MongoDB")]
+  Cloudinary[("Cloudinary")]
 
-  UI -->|HTTP| Axios --> API
-  SockClient <-->|WebSocket| SockServer
+  UI --> Axios --> API
+  SockClient <--> SockServer
   API --> DB
   API --> Upload --> Cloudinary
   SockServer --> DB
-  Auth -. protects .-> API
+  Auth -.-> API
 ```
 
 ### Key Endpoints
